@@ -1,11 +1,10 @@
-import time
-
 import requests
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QDateTime
 
 
 class detect_thread(QThread):
-    transmit_data = pyqtSignal(dict)#定义信号，用于子线程与主线程中的数据交互
+    transmit_data = pyqtSignal(dict)#定义信号，用于子线程与主线程中的人脸检测数据交互
+    transmit_data1 = pyqtSignal(str)  # 定义信号，用于子线程与主线程中的人脸识别数据交互
     def __init__(self,access_token):
         super(detect_thread,self).__init__()
         self.ok=True#循环控制变量
@@ -16,7 +15,7 @@ class detect_thread(QThread):
         while self.ok==True:
             if self.condition==True:
                 self.detect_face(self.imageData)
-            time.sleep(0.5)
+                self.condition=False
     '''
         接收主线程传递过来的图像
     '''
@@ -44,6 +43,30 @@ class detect_thread(QThread):
         # 发送post网络请求,请求百度AI进行人脸检测
         response = requests.post(request_url, data=params, headers=headers)
         if response:
-            #print(response.json())
             data = response.json()
+            self.face_search()
             self.transmit_data.emit(dict(data))#如果返回结果正确，则将返回信息传递给主线程
+
+    # 人脸识别搜索检测，只识别一个人
+    def face_search(self):
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/search"
+        params = {
+            "image": self.imageData,
+            "image_type": "BASE64",
+            "group_id_list": "class1",
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            data = response.json()
+            if data['error_msg'] == 'SUCCESS':
+                if data['result']['user_list'][0]['score'] > 90: #大于90分，意味人脸识别成功
+                    del [data['result']['user_list'][0]['score']]
+                    datetime = QDateTime.currentDateTime()#获取人脸打开时间
+                    datetime = datetime.toString()#将获取到的时间转为字符串
+                    data['result']['user_list'][0]['datetime'] = datetime#将获取到的时间添加到返回的数据中
+                    list1 = [data['result']['user_list'][0]['user_id'],data['result']['user_list'][0]['group_id']]#去除名字和班级
+                    self.transmit_data1.emit("学生签到成功\n学生信息如下:\n" + "姓名:" + list1[0] + "\n" + "班级:" + list1[1])#将信号发送给主线程
+

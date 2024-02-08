@@ -1,15 +1,15 @@
 import base64
 
-from datetime import datetime
-
 import cv2
 import requests
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QInputDialog
 from cameraVideo import camera
 from mainWindow import Ui_MainWindow
 from detect import detect_thread
+from add_student_window import add_student_window
+from del_student_window import del_student_window
 class function_window(Ui_MainWindow,QMainWindow):
     '''
     初始化函数
@@ -20,6 +20,11 @@ class function_window(Ui_MainWindow,QMainWindow):
         self.label.setScaledContents(True)#设置图像自适应label显示框
         self.pushButton.clicked.connect(self.open_Sign)#打开签到事件绑定
         self.pushButton_2.clicked.connect(self.close_Sign)#关闭签到事件绑定
+        self.actionaddclass.triggered.connect(self.add_class)#添加班级按钮事件绑定
+        self.actionfindclass.triggered.connect(self.display_class)#查询班级按钮事件绑定
+        self.actiondelclass.triggered.connect(self.delete_calss)#删除班级按钮事件绑定
+        self.actionaddStu.triggered.connect(self.add_student)#增加学生人脸信息事件绑定
+        self.actiondelStu.triggered.connect(self.del_student)#删除学生人脸信息事件绑定
         self.access_token=self.get_accessToken()#获取Access_token访问令牌，并复制为全局变量
         self.start_state=True
     '''
@@ -31,16 +36,17 @@ class function_window(Ui_MainWindow,QMainWindow):
             self.cameravideo = camera()
             # 启动定时器进行定时，每隔多长时间进行一次获取摄像头数据进行显示
             self.timeshow = QTimer(self)
-            self.timeshow.start(30)
+            self.timeshow.start(10)
             # 每隔10毫秒产生一个信号timeout
             self.timeshow.timeout.connect(self.show_cameradata)
             self.detect = detect_thread(self.access_token)  # 创建线程
             self.detect.start()  # 启动线程
-            # 签到1000毫秒获取一次,用来获取检测的画面
+            # 签到500毫秒获取一次,用来获取检测的画面
             self.faceshow = QTimer(self)
-            self.faceshow.start(2000)
+            self.faceshow.start(500)
             self.faceshow.timeout.connect(self.get_cameradata)
             self.detect.transmit_data.connect(self.get_data)
+            self.detect.transmit_data1.connect(self.get_seach_data)
             self.start_state=False
         else:
             QMessageBox.about(self, "提示", "正在检测，请先关闭！")
@@ -129,8 +135,6 @@ class function_window(Ui_MainWindow,QMainWindow):
         获取图像，并转换为base64格式
     '''
     def get_cameradata(self):
-        # 输出当前时间，精确到毫秒
-        print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
         camera_data1 = self.cameravideo.read_camera()
         # 把摄像头画面转化为一张图片，然后设置编码为base64编码
         _, enc = cv2.imencode('.jpg', camera_data1)
@@ -158,7 +162,176 @@ class function_window(Ui_MainWindow,QMainWindow):
         if response:
             data = response.json()
             self.access_token = data['access_token']
-            print(self.access_token)
             return self.access_token
         else:
             QMessageBox(self,"提示","请检查网络连接！")
+
+
+    def get_seach_data(self,data):
+        self.plainTextEdit.setPlainText(data)
+
+
+    #添加班级
+    def add_class(self):
+        # 打开输入框，进行输入用户组
+        group, ret = QInputDialog.getText(self, "添加班级", "请输入班级名称(由数字、字母、下划线组成)")
+        if group == "":
+            print("取消添加班级")
+        else:
+            request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/add"
+
+            params = {
+                "group_id": group
+            }
+            access_token = self.access_token
+            request_url = request_url + "?access_token=" + access_token
+            headers = {'content-type': 'application/json'}
+            response = requests.post(request_url, data=params, headers=headers)
+            if response:
+                print(response.json())
+                message = response.json()
+                if message['error_code'] == 0:#根据规则，返回0则为班级添加成功
+                    QMessageBox.about(self, "班级创建结果", "班级创建成功")
+                else:
+                    QMessageBox.about(self, "班级创建结果", "班级创建失败")
+
+    #班级查询
+    def get_class(self):
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/getlist"
+        params = {
+            "start":0,
+            "length":100
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            return response.json()
+    #将查询到的结果显示在MessageBOX框上面
+    def display_class(self):
+        list=self.get_class()
+        str=''
+        for i in list['result']['group_id_list']:
+            str=str+'\n'+i
+        QMessageBox.about(self,"班级列表",str)
+    #班级删除
+    def delete_calss(self):
+        #打开输入框，进行输入用户组
+        list = self.get_class()#首先获取用户组信息
+        group,ret=QInputDialog.getText(self, "存在的班级", "班级信息"+str(list['result']['group_id_list']))
+        if group == "":
+            print("取消删除班级")
+        else:
+            request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/delete"
+
+            params = {
+                "group_id": group#要删除用户组的id
+            }
+            access_token = self.access_token
+            request_url = request_url + "?access_token=" + access_token
+            headers = {'content-type': 'application/json'}
+            response = requests.post(request_url, data=params, headers=headers)
+            if response:
+                print(response.json())
+                message = response.json()
+                if message['error_code'] == 0:
+                    QMessageBox.about(self, "班级删除结果", "班级删除成功")
+                else:
+                    QMessageBox.about(self, "班级删除结果", "班级删除失败")
+    #增加学生信息
+    def add_student(self):
+        '''
+        人脸注册
+        '''
+        list=self.get_class()#获取班级，将班级信息传递到我们新建的界面之中
+        # 创建一个窗口，进行用户信息录入
+        window = add_student_window(list['result']['group_id_list'],self)#将获取到的班级传递到新的界面，后续有用
+        #新创建窗口，通过exec()函数一直在执行，窗口不进行关闭
+        window_status=window.exec_()
+        #判断
+        if window_status !=1:
+            return
+        base64_image = window.base64_image
+        # 参数请求中，需要获取人脸编码，添加的组的id,添加的用户，新用户id信息
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/add"
+
+        params = {
+            "image": base64_image,  # 人脸图片
+            "image_type": "BASE64",  # 图片编码格式
+            "group_id": window.class_id,  # 班级名称
+            "user_id": window.student_id,  # 学生学号
+            "user_info": window.student_name# 学生姓名
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            data = response.json()
+            if data['error_code'] == 0:
+                QMessageBox.about(self, "增加结果", "学生增加成功！")
+            else:
+                QMessageBox.about(self, "增加结果", "学生增加失败！")
+    #删除学生信息
+    def del_student(self):
+        list = self.get_class()#获取班级列表
+        if list['error_msg'] == 'SUCCESS':
+            window = del_student_window(list['result']['group_id_list'], self.access_token, self)
+            # 新创建窗口，通过exec()函数一直在执行，窗口不进行关闭
+            window_status = window.exec_()
+            # 判断
+            if window_status != 1:
+                return
+            class_name = window.class_name
+            student_list = window.get_student_list(class_name)
+            if student_list['error_msg'] == 'SUCCESS':
+                student_no = window.student_no
+                if student_no == "":
+                    return
+                for i in student_list['result']['user_id_list']:
+                    if student_no == i:
+                        face_list = self.user_face_list(class_name, student_no)
+                        if face_list['error_msg'] == 'SUCCESS':
+                            for i in face_list['result']['face_list']:
+                                self.del_face_token(class_name, student_no, i['face_token'])
+                        else:
+                            return
+                    else:
+                        return
+            else:
+                return
+        else:
+            return
+    #通过API访问规则，对学生人脸及有关信息进行删除
+    def del_face_token(self,class_name,student_no,facetoken):
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/face/delete"
+        params = {
+            "user_id":student_no,
+            "group_id":class_name,
+            "face_token":facetoken
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            data = response.json()
+            if data['error_code'] == 0:
+                QMessageBox.about(self,"删除状态","学生人脸及信息删除成功！")
+            else:
+                QMessageBox.about(self,"删除状态","学生人脸及信息删除失败！")
+
+    # 获取用户人脸列表
+    def user_face_list(self, group, user):
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/face/getlist"
+        params = {
+            "user_id": user,
+            "group_id": group
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            return response.json()
