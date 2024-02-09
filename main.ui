@@ -99,14 +99,17 @@
      </property>
     </widget>
    </widget>
-   <widget class="QDateTimeEdit" name="dateTimeEdit">
+   <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>0</y>
-      <width>481</width>
-      <height>51</height>
+      <x>30</x>
+      <y>10</y>
+      <width>521</width>
+      <height>31</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>时间</string>
     </property>
    </widget>
   </widget>
@@ -123,48 +126,48 @@
     <property name="title">
      <string>班级管理</string>
     </property>
-    <addaction name="actionadd"/>
-    <addaction name="actiondel"/>
-    <addaction name="actionfind"/>
+    <addaction name="actionaddclass"/>
+    <addaction name="actiondelclass"/>
+    <addaction name="actionfindclass"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
      <string>学生管理</string>
     </property>
-    <addaction name="actionadd_2"/>
-    <addaction name="actiondel_2"/>
-    <addaction name="actionfind_2"/>
+    <addaction name="actionaddStu"/>
+    <addaction name="actiondelStu"/>
+    <addaction name="actionfindStu"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionadd">
+  <action name="actionaddclass">
    <property name="text">
     <string>增</string>
    </property>
   </action>
-  <action name="actiondel">
+  <action name="actiondelclass">
    <property name="text">
     <string>删</string>
    </property>
   </action>
-  <action name="actionfind">
+  <action name="actionfindclass">
    <property name="text">
     <string>查</string>
    </property>
   </action>
-  <action name="actionadd_2">
+  <action name="actionaddStu">
    <property name="text">
     <string>增</string>
    </property>
   </action>
-  <action name="actiondel_2">
+  <action name="actiondelStu">
    <property name="text">
     <string>删</string>
    </property>
   </action>
-  <action name="actionfind_2">
+  <action name="actionfindStu">
    <property name="text">
     <string>查</string>
    </property>

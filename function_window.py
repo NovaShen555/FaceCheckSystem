@@ -1,4 +1,5 @@
 import base64
+import time
 
 import cv2
 import requests
@@ -6,6 +7,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QInputDialog
 from cameraVideo import camera
+from find_information_window import find_information_window
 from mainWindow import Ui_MainWindow
 from detect import detect_thread
 from add_student_window import add_student_window
@@ -25,6 +27,7 @@ class function_window(Ui_MainWindow,QMainWindow):
         self.actiondelclass.triggered.connect(self.delete_calss)#删除班级按钮事件绑定
         self.actionaddStu.triggered.connect(self.add_student)#增加学生人脸信息事件绑定
         self.actiondelStu.triggered.connect(self.del_student)#删除学生人脸信息事件绑定
+        self.actionfindStu.triggered.connect(self.search_student)  # 学生信息查询事件绑定
         self.access_token=self.get_accessToken()#获取Access_token访问令牌，并复制为全局变量
         self.start_state=True
     '''
@@ -65,6 +68,10 @@ class function_window(Ui_MainWindow,QMainWindow):
             # 关闭摄像头
             self.cameravideo.colse_camera()
             self.start_state=True
+            # 显示本次签到情况，弹出弹窗
+            self.sign = find_information_window(self.detect.sign_data_list, self)  # 传递数据暂时为空
+            self.sign.exec_()
+
             # 判断定时器是否关闭，关闭，则显示为自己设定的图像
             if self.timeshow.isActive() == False:
                 self.label.setPixmap(QPixmap("image/1.jpg"))
@@ -149,6 +156,9 @@ class function_window(Ui_MainWindow,QMainWindow):
         pic=self.cameravideo.camera_to_pic()
         #在lebel框中显示数据、显示画面
         self.label.setPixmap(pic)
+        #在label中显示当前时间
+        print(time.asctime())
+        self.label_2.setText(time.asctime())
 
     '''
         获取Access_token访问令牌
@@ -157,10 +167,12 @@ class function_window(Ui_MainWindow,QMainWindow):
 
         # client_id 为官网获取的AK， client_secret 为官网获取的SK
         host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=TKGXdKC7WPWeADGHmFBN8xAr&client_secret=lsr1tAuxv3tRGmOgZTGgNyri667dfKGg'
+        # host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=w6EtFT4ywGdPFjGq6THW2Ay3&client_secret=umaxaT4G52hc8bFwvIuLs0q1PkNpR08s'
         # 进行网络请求，使用get函数
         response = requests.get(host)
         if response:
             data = response.json()
+            print(data)
             self.access_token = data['access_token']
             return self.access_token
         else:
@@ -335,3 +347,26 @@ class function_window(Ui_MainWindow,QMainWindow):
         response = requests.post(request_url, data=params, headers=headers)
         if response:
             return response.json()
+    #学生有关信息查询
+    def search_student(self):
+        # 打开输入框，进行输入用户组
+        student_no, ret = QInputDialog.getText(self, "学生学号", "请输入学生学号")
+        if student_no == "":
+            return
+        else:
+            request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/get"
+            params = {
+                "user_id": student_no,
+                "group_id": "@ALL"
+            }
+            access_token = self.access_token
+            request_url = request_url + "?access_token=" + access_token
+            headers = {'content-type': 'application/json'}
+            response = requests.post(request_url, data=params, headers=headers)
+            if response:
+                data=response.json()
+                if data['error_code'] == 0:
+                    QMessageBox.about(self, "查询结果", "学生姓名:"+data["result"]["user_list"][0]["user_info"]+
+                                      "，班级："+data["result"]["user_list"][0]["group_id"])
+                else:
+                    QMessageBox.about(self, "查询结果", "暂无该生！")
