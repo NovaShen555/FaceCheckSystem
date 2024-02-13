@@ -63,7 +63,7 @@
      </rect>
     </property>
     <property name="title">
-     <string>签到统计</string>
+     <string>签到记录</string>
     </property>
     <widget class="QPlainTextEdit" name="plainTextEdit">
      <property name="geometry">
@@ -72,29 +72,6 @@
        <y>20</y>
        <width>231</width>
        <height>211</height>
-      </rect>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>710</x>
-      <y>290</y>
-      <width>251</width>
-      <height>371</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>检测信息</string>
-    </property>
-    <widget class="QPlainTextEdit" name="plainTextEdit_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>231</width>
-       <height>321</height>
       </rect>
      </property>
     </widget>
@@ -111,6 +88,49 @@
     <property name="text">
      <string>时间</string>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>280</y>
+      <width>251</width>
+      <height>301</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>签到统计</string>
+    </property>
+    <widget class="QTableWidget" name="tableWidget">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>231</width>
+       <height>251</height>
+      </rect>
+     </property>
+     <column>
+      <property name="text">
+       <string>id</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>name</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>class</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>time</string>
+      </property>
+     </column>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

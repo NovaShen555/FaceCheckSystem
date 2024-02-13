@@ -3,7 +3,9 @@ from PyQt5.QtCore import QThread, pyqtSignal, QDateTime
 
 
 class detect_thread(QThread):
-    transmit_data = pyqtSignal(dict)#定义信号，用于子线程与主线程中的人脸检测数据交互
+    # transmit_data = pyqtSignal(dict)#定义信号，用于子线程与主线程中的人脸检测数据交互
+    # update: 2024-2-13
+    # 不再返回人脸的检测结果
     transmit_data1 = pyqtSignal(str)  # 定义信号，用于子线程与主线程中的人脸识别数据交互
     # 字典用来存储签到数据
     sign_data_list = {}
@@ -46,9 +48,11 @@ class detect_thread(QThread):
         # 发送post网络请求,请求百度AI进行人脸检测
         response = requests.post(request_url, data=params, headers=headers)
         if response:
-            data = response.json()
+            # data = response.json()
             self.face_search()
-            self.transmit_data.emit(dict(data))#如果返回结果正确，则将返回信息传递给主线程
+            # self.transmit_data.emit(dict(data))#如果返回结果正确，则将返回信息传递给主线程
+            # update: 2024-2-13
+            # 不再返回人脸的检测结果
 
     # 人脸识别搜索检测，只识别一个人
     def face_search(self):
