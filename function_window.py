@@ -14,6 +14,8 @@ from add_student_window import add_student_window
 from del_student_window import del_student_window
 
 
+
+
 class function_window(Ui_MainWindow, QMainWindow):
     '''
     初始化函数
@@ -45,6 +47,19 @@ class function_window(Ui_MainWindow, QMainWindow):
         self.tableWidget.setColumnWidth(3, 90)
         # update: 2024-2-13
         # 新增表格列展示签到统计
+
+        self.fresh_window()
+        # update: 2024-2-13
+        # 新增班级选择
+
+    '''
+        刷新窗口，重新获取班级数据
+    '''
+    def fresh_window(self):
+        list = self.get_class()['result']['group_id_list']
+        self.comboBox.clear()
+        for i in list:
+            self.comboBox.addItem(i)  # 将获取到的班级列表显示在下拉框中
 
     '''
         打开签到
@@ -110,8 +125,9 @@ class function_window(Ui_MainWindow, QMainWindow):
         # 把摄像头画面转化为一张图片，然后设置编码为base64编码
         _, enc = cv2.imencode('.jpg', camera_data1)
         base64_image = base64.b64encode(enc.tobytes())
+        currentClass = self.comboBox.currentText()
         # 产生信号，传递数据
-        self.detect.get_imgdata(base64_image)
+        self.detect.get_imgdata(base64_image,currentClass)
 
     '''
         摄像头数据显示
@@ -133,8 +149,8 @@ class function_window(Ui_MainWindow, QMainWindow):
     def get_accessToken(self):
 
         # client_id 为官网获取的AK， client_secret 为官网获取的SK
-        host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=TKGXdKC7WPWeADGHmFBN8xAr&client_secret=lsr1tAuxv3tRGmOgZTGgNyri667dfKGg'
-        # host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=w6EtFT4ywGdPFjGq6THW2Ay3&client_secret=umaxaT4G52hc8bFwvIuLs0q1PkNpR08s'
+        # host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=TKGXdKC7WPWeADGHmFBN8xAr&client_secret=lsr1tAuxv3tRGmOgZTGgNyri667dfKGg'
+        host = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=w6EtFT4ywGdPFjGq6THW2Ay3&client_secret=umaxaT4G52hc8bFwvIuLs0q1PkNpR08s'
         # 进行网络请求，使用get函数
         response = requests.get(host)
         if response:
@@ -185,6 +201,8 @@ class function_window(Ui_MainWindow, QMainWindow):
                 else:
                     QMessageBox.about(self, "班级创建结果", "班级创建失败")
 
+        self.fresh_window()
+
     # 班级查询
     def get_class(self):
         request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/getlist"
@@ -231,6 +249,9 @@ class function_window(Ui_MainWindow, QMainWindow):
                     QMessageBox.about(self, "班级删除结果", "班级删除成功")
                 else:
                     QMessageBox.about(self, "班级删除结果", "班级删除失败")
+
+                    
+        self.fresh_window()
 
     # 增加学生信息
     def add_student(self):

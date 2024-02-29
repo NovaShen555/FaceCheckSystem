@@ -12,6 +12,7 @@ class detect_thread(QThread):
 
     def __init__(self,access_token):
         super(detect_thread,self).__init__()
+        self.currentClass = ""
         self.ok=True#循环控制变量
         self.condition = False#人脸检测控制变量，是否进行人脸检测
         self.access_token=access_token#主线程获取的access_token信息传递给子线程并设置为全局变量
@@ -24,10 +25,11 @@ class detect_thread(QThread):
     '''
         接收主线程传递过来的图像
     '''
-    def get_imgdata(self,data):
+    def get_imgdata(self,data,currentClass):
         #当窗口调用这个槽函数，就把传递的数据存放在线程的变量中
         self.imageData=data#将接收到图像数据赋值给全局变量
         self.condition=True#主线程有图像传递过来，改变condition的状态，run函数中运行人脸检测函数
+        self.currentClass = currentClass  # 将接收到的班级数据赋值给全局变量
     '''
         人脸检测
     '''
@@ -60,7 +62,7 @@ class detect_thread(QThread):
         params = {
             "image": self.imageData,
             "image_type": "BASE64",
-            "group_id_list": "2024",
+            "group_id_list": self.currentClass,
         }
         access_token = self.access_token
         request_url = request_url + "?access_token=" + access_token
@@ -69,6 +71,7 @@ class detect_thread(QThread):
         if response:
             data = response.json()
             if data['error_msg'] == 'SUCCESS':
+                score = int(data['result']['user_list'][0]['score']*100)/100
                 if data['result']['user_list'][0]['score'] > 90:  # 大于90分，意味人脸识别成功
                     del [data['result']['user_list'][0]['score']]
                     datetime = QDateTime.currentDateTime()  # 获取人脸打开时间
@@ -81,4 +84,4 @@ class detect_thread(QThread):
                     list1 = [data['result']['user_list'][0]['user_id'],
                              data['result']['user_list'][0]['group_id']]  # 去除名字和班级
                     self.transmit_data1.emit(
-                        "学生签到成功\n学生信息如下:\n" + "姓名:" + list1[0] + "\n" + "班级:" + list1[1])  # 将信号发送给主线程
+                        "学生签到成功\n学生信息如下:\n" + "姓名:" + list1[0] + "\n" + "班级:" + list1[1]+"\n匹配度："+str(score)+"%")  # 将信号发送给主线程

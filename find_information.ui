@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>签到结果导出</string>
   </property>
   <widget class="QTableWidget" name="tableWidget">
    <property name="geometry">
