@@ -1,6 +1,8 @@
+import time
+
 import requests
 from PyQt5.QtCore import QThread, pyqtSignal, QDateTime
-
+from punchData import punchData
 
 class detect_thread(QThread):
     # transmit_data = pyqtSignal(dict)#定义信号，用于子线程与主线程中的人脸检测数据交互
@@ -9,6 +11,7 @@ class detect_thread(QThread):
     transmit_data1 = pyqtSignal(str)  # 定义信号，用于子线程与主线程中的人脸识别数据交互
     # 字典用来存储签到数据
     sign_data_list = {}
+    store_data:list[punchData] = []
 
     def __init__(self,access_token):
         super(detect_thread,self).__init__()
@@ -81,6 +84,12 @@ class detect_thread(QThread):
                         'user_id']  # 在变量中键入值，包括班级名称和学生学号
                     if key not in self.sign_data_list.keys():
                         self.sign_data_list[key] = data['result']['user_list'][0]
+
+                        self.store_data.append(punchData(data['result']['user_list'][0]['user_id'],
+                                                         data['result']['user_list'][0]['user_info'],
+                                                         data['result']['user_list'][0]['group_id'],
+                                                         time.asctime()))
+
                     list1 = [data['result']['user_list'][0]['user_id'],
                              data['result']['user_list'][0]['group_id']]  # 去除名字和班级
                     self.transmit_data1.emit(

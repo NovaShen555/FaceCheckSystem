@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(441, 556)
+        Dialog.resize(779, 554)
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(40, 0, 341, 301))
         self.label.setObjectName("label")
@@ -45,17 +45,27 @@ class Ui_Dialog(object):
         self.comboBox = QtWidgets.QComboBox(Dialog)
         self.comboBox.setGeometry(QtCore.QRect(120, 350, 191, 31))
         self.comboBox.setObjectName("comboBox")
+        self.listView = QtWidgets.QListView(Dialog)
+        self.listView.setGeometry(QtCore.QRect(400, 20, 351, 431))
+        self.listView.setObjectName("listView")
+        self.pushButton_4 = QtWidgets.QPushButton(Dialog)
+        self.pushButton_4.setGeometry(QtCore.QRect(590, 470, 161, 51))
+        self.pushButton_4.setObjectName("pushButton_4")
+        self.comboBox_2 = QtWidgets.QComboBox(Dialog)
+        self.comboBox_2.setGeometry(QtCore.QRect(390, 470, 191, 51))
+        self.comboBox_2.setObjectName("comboBox_2")
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "添加学生"))
         self.label.setText(_translate("Dialog", "人脸捕捉"))
         self.pushButton.setText(_translate("Dialog", "拍摄"))
         self.label_2.setText(_translate("Dialog", "No."))
         self.label_3.setText(_translate("Dialog", "Name"))
         self.label_4.setText(_translate("Dialog", "Class"))
-        self.pushButton_2.setText(_translate("Dialog", "确认"))
+        self.pushButton_2.setText(_translate("Dialog", "新建学生"))
         self.pushButton_3.setText(_translate("Dialog", "取消"))
+        self.pushButton_4.setText(_translate("Dialog", "删除选中"))

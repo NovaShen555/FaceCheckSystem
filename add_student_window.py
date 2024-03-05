@@ -1,7 +1,7 @@
 import base64
 
 import cv2
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QStringListModel
 from PyQt5.QtGui import QPixmap
 
 from add_student import Ui_Dialog
@@ -9,9 +9,10 @@ from PyQt5.QtWidgets import QDialog
 from cameraVideo import camera
 
 class add_student_window(Ui_Dialog,QDialog):
-    def __init__(self,list,parent=None):
+    def __init__(self,funC,list,parent=None):
         super(add_student_window,self).__init__(parent)
         self.setupUi(self)
+        self.funC = funC#要用到上级函数
         self.list=list#收取主界面传递过来的班级列表
         self.show_class()#将班级列表显示在下拉框中
         self.label.setScaledContents(True)#使得图像自适应
@@ -22,7 +23,23 @@ class add_student_window(Ui_Dialog,QDialog):
         self.time.start(50)#每隔50ms获取一次画面
         self.pushButton.clicked.connect(self.get_cameradata)#获取画面按钮事件绑定
         self.pushButton_2.clicked.connect(self.get_student_data)#点击确定，获取对应信息
-        self.pushButton_3.clicked.connect(self.close_window)#点击关闭，窗口关闭
+        self.comboBox_2.currentIndexChanged.connect(self.fresh_window)#下拉框事件绑定
+        self.pushButton_4.clicked.connect(self.del_student)
+        self.base64_image = ""
+
+        self.fresh_window()#刷新窗口
+
+    def del_student(self):
+        self.funC.del_student_by_name(self.comboBox_2.currentText(),self.listView.selectionModel().selectedIndexes()[0].data())
+        self.fresh_window()
+
+    def fresh_window(self):
+        # 将listView添加部分数据
+        self.classList = self.funC.get_student_by_class(self.comboBox_2.currentText())
+        listModel = QStringListModel()
+        listModel.setStringList(self.classList)
+        self.listView.setModel(listModel)
+
 
     def show_camera(self):
         # 获取摄像头数据
@@ -40,15 +57,21 @@ class add_student_window(Ui_Dialog,QDialog):
         self.cameravideo.colse_camera()#摄像机关闭
     def show_class(self):
         self.comboBox.clear()
+        self.comboBox_2.clear()
         for i in self.list:
             self.comboBox.addItem(i)#将获取到的班级列表显示在下拉框中
+            self.comboBox_2.addItem(i)
     #获取学生基本信息
     def get_student_data(self):
         self.class_id=self.comboBox.currentText()#获取班级
         self.student_id=self.lineEdit.text()#获取学号
         self.student_name=self.lineEdit_2.text()#获取姓名
-        self.accept()#点击确认后关闭对话框
-    #关闭窗口
+        if self.class_id=="" or self.student_id=="" or self.student_name=="" or self.base64_image=="":
+            print("信息不完整")
+            return
+        self.funC.add_student_by_name(self.base64_image,self.class_id,self.student_id,self.student_name)
+        self.fresh_window()
+
     def close_window(self):
         # 关闭对话框
         self.close()

@@ -148,65 +148,8 @@
     </item>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>993</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menu">
-    <property name="title">
-     <string>班级管理</string>
-    </property>
-    <addaction name="actionaddclass"/>
-    <addaction name="actiondelclass"/>
-    <addaction name="actionfindclass"/>
-   </widget>
-   <widget class="QMenu" name="menu_2">
-    <property name="title">
-     <string>学生管理</string>
-    </property>
-    <addaction name="actionaddStu"/>
-    <addaction name="actiondelStu"/>
-    <addaction name="actionfindStu"/>
-   </widget>
-   <addaction name="menu"/>
-   <addaction name="menu_2"/>
-  </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionaddclass">
-   <property name="text">
-    <string>增</string>
-   </property>
-  </action>
-  <action name="actiondelclass">
-   <property name="text">
-    <string>删</string>
-   </property>
-  </action>
-  <action name="actionfindclass">
-   <property name="text">
-    <string>查</string>
-   </property>
-  </action>
-  <action name="actionaddStu">
-   <property name="text">
-    <string>增</string>
-   </property>
-  </action>
-  <action name="actiondelStu">
-   <property name="text">
-    <string>删</string>
-   </property>
-  </action>
-  <action name="actionfindStu">
-   <property name="text">
-    <string>查</string>
-   </property>
-  </action>
+
  </widget>
  <resources/>
  <connections/>

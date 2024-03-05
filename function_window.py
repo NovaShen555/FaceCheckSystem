@@ -1,4 +1,5 @@
 import base64
+import pickle
 import time
 
 import cv2
@@ -8,12 +9,10 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QInputDialog, QAbstractItemView, QHeaderView, QTableWidgetItem
 from cameraVideo import camera
 from find_information_window import find_information_window
-from mainWindow import Ui_MainWindow
+from main import Ui_MainWindow
 from detect import detect_thread
 from add_student_window import add_student_window
 from del_student_window import del_student_window
-
-
 
 
 class function_window(Ui_MainWindow, QMainWindow):
@@ -27,12 +26,12 @@ class function_window(Ui_MainWindow, QMainWindow):
         self.label.setScaledContents(True)  # 设置图像自适应label显示框
         self.pushButton.clicked.connect(self.open_Sign)  # 打开签到事件绑定
         self.pushButton_2.clicked.connect(self.close_Sign)  # 关闭签到事件绑定
-        self.actionaddclass.triggered.connect(self.add_class)  # 添加班级按钮事件绑定
-        self.actionfindclass.triggered.connect(self.display_class)  # 查询班级按钮事件绑定
-        self.actiondelclass.triggered.connect(self.delete_calss)  # 删除班级按钮事件绑定
-        self.actionaddStu.triggered.connect(self.add_student)  # 增加学生人脸信息事件绑定
-        self.actiondelStu.triggered.connect(self.del_student)  # 删除学生人脸信息事件绑定
-        self.actionfindStu.triggered.connect(self.search_student)  # 学生信息查询事件绑定
+        # self.actionaddclass.triggered.connect(self.add_class)  # 添加班级按钮事件绑定
+        # self.actionfindclass.triggered.connect(self.display_class)  # 查询班级按钮事件绑定
+        # self.actiondelclass.triggered.connect(self.delete_calss)  # 删除班级按钮事件绑定
+        # self.actionaddStu.triggered.connect(self.add_student)  # 增加学生人脸信息事件绑定
+        # self.actiondelStu.triggered.connect(self.del_student)  # 删除学生人脸信息事件绑定
+        # self.actionfindStu.triggered.connect(self.search_student)  # 学生信息查询事件绑定
         self.access_token = self.get_accessToken()  # 获取Access_token访问令牌，并复制为全局变量
         self.start_state = True
 
@@ -117,6 +116,17 @@ class function_window(Ui_MainWindow, QMainWindow):
                 self.label.setPixmap(QPixmap("1.jpg"))
             else:
                 QMessageBox.about(self, "警告", "关闭失败，存在部分没有关闭成功！")
+
+            # 将数据持久化
+            f = open("pickle.pickle", 'rb')
+            objFromPickle = pickle.load(f)
+            f.close()
+            f = open("pickle.pickle", 'wb')
+            for i in self.detect.store_data:
+                objFromPickle.append(i)
+            print(objFromPickle)
+            f.close()
+
         else:
             QMessageBox.about(self, "提示", "请先开始检测！")
 
@@ -226,6 +236,24 @@ class function_window(Ui_MainWindow, QMainWindow):
         if response:
             return response.json()
 
+    # 学生查询
+    def get_student_by_class(self,name):
+        if name == "":
+            return []
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/getusers"
+        params = {
+            "group_id": name
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            print(response.json())
+            return response.json()["result"]["user_id_list"]
+        else:
+            return []
+
     # 将查询到的结果显示在MessageBOX框上面
     def display_class(self):
         list = self.get_class()
@@ -265,29 +293,17 @@ class function_window(Ui_MainWindow, QMainWindow):
 
         self.fresh_window()
 
-    # 增加学生信息
-    def add_student(self):
-        '''
-        人脸注册
-        '''
-        list = self.get_class()  # 获取班级，将班级信息传递到我们新建的界面之中
-        # 创建一个窗口，进行用户信息录入
-        window = add_student_window(list['result']['group_id_list'], self)  # 将获取到的班级传递到新的界面，后续有用
-        # 新创建窗口，通过exec()函数一直在执行，窗口不进行关闭
-        window_status = window.exec_()
-        # 判断
-        if window_status != 1:
-            return
-        base64_image = window.base64_image
+
+    def add_student_by_name(self,base64_image,group,user_id,user_info):
         # 参数请求中，需要获取人脸编码，添加的组的id,添加的用户，新用户id信息
         request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/user/add"
 
         params = {
             "image": base64_image,  # 人脸图片
             "image_type": "BASE64",  # 图片编码格式
-            "group_id": window.class_id,  # 班级名称
-            "user_id": window.student_id,  # 学生学号
-            "user_info": window.student_name  # 学生姓名
+            "group_id": group,  # 班级名称
+            "user_id": user_id,  # 学生学号
+            "user_info": user_info  # 学生姓名
         }
         access_token = self.access_token
         request_url = request_url + "?access_token=" + access_token
@@ -299,6 +315,30 @@ class function_window(Ui_MainWindow, QMainWindow):
                 QMessageBox.about(self, "增加结果", "学生增加成功！")
             else:
                 QMessageBox.about(self, "增加结果", "学生增加失败！")
+
+    # 增加学生信息
+    def add_student(self):
+        '''
+        人脸注册
+        '''
+        list = self.get_class()  # 获取班级，将班级信息传递到我们新建的界面之中
+        # 创建一个窗口，进行用户信息录入
+        window = add_student_window(self,list['result']['group_id_list'], self)  # 将获取到的班级传递到新的界面，后续有用
+        # 新创建窗口，通过exec()函数一直在执行，窗口不进行关闭
+        window_status = window.exec_()
+        # 判断
+        if window_status != 1:
+            return
+        base64_image = window.base64_image
+
+
+    def del_student_by_name(self,class_id,name):
+        face_list = self.user_face_list(class_id, name)
+        if face_list['error_msg'] == 'SUCCESS':
+            for i in face_list['result']['face_list']:
+                self.del_face_token(class_id, name, i['face_token'])
+        else:
+            return
 
     # 删除学生信息
     def del_student(self):
@@ -318,12 +358,7 @@ class function_window(Ui_MainWindow, QMainWindow):
                     return
                 for i in student_list['result']['user_id_list']:
                     if student_no == i:
-                        face_list = self.user_face_list(class_name, student_no)
-                        if face_list['error_msg'] == 'SUCCESS':
-                            for i in face_list['result']['face_list']:
-                                self.del_face_token(class_name, student_no, i['face_token'])
-                        else:
-                            return
+                        self.del_student_by_name(class_name, student_no)
                     else:
                         return
             else:
