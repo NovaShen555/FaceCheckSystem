@@ -23,6 +23,7 @@ class add_student_window(Ui_Dialog,QDialog):
         self.pushButton.clicked.connect(self.get_cameradata)#获取画面按钮事件绑定
         self.pushButton_2.clicked.connect(self.get_student_data)#点击确定，获取对应信息
         self.pushButton_3.clicked.connect(self.close_window)#点击关闭，窗口关闭
+
     def show_camera(self):
         # 获取摄像头数据
         pic = self.cameravideo.camera_to_pic()#获取一帧图像

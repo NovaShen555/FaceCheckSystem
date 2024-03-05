@@ -52,6 +52,11 @@ class function_window(Ui_MainWindow, QMainWindow):
         # update: 2024-2-13
         # 新增班级选择
 
+    def show(self):
+        self.fresh_window()
+        super().show()
+
+
     '''
         刷新窗口，重新获取班级数据
     '''
@@ -177,6 +182,25 @@ class function_window(Ui_MainWindow, QMainWindow):
         # update: 2024-2-13
         # 新增表格列展示签到统计
 
+
+    def add_class_by_name(self,name):
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/add"
+
+        params = {
+            "group_id": name
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            print(response.json())
+            message = response.json()
+            if message['error_code'] == 0:  # 根据规则，返回0则为班级添加成功
+                QMessageBox.about(self, "班级创建结果", "班级创建成功")
+            else:
+                QMessageBox.about(self, "班级创建结果", "班级创建失败")
+
     # 添加班级
     def add_class(self):
         # 打开输入框，进行输入用户组
@@ -184,22 +208,7 @@ class function_window(Ui_MainWindow, QMainWindow):
         if group == "":
             print("取消添加班级")
         else:
-            request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/add"
-
-            params = {
-                "group_id": group
-            }
-            access_token = self.access_token
-            request_url = request_url + "?access_token=" + access_token
-            headers = {'content-type': 'application/json'}
-            response = requests.post(request_url, data=params, headers=headers)
-            if response:
-                print(response.json())
-                message = response.json()
-                if message['error_code'] == 0:  # 根据规则，返回0则为班级添加成功
-                    QMessageBox.about(self, "班级创建结果", "班级创建成功")
-                else:
-                    QMessageBox.about(self, "班级创建结果", "班级创建失败")
+            self.add_class_by_name(group)
 
         self.fresh_window()
 
@@ -225,6 +234,25 @@ class function_window(Ui_MainWindow, QMainWindow):
             str = str + '\n' + i
         QMessageBox.about(self, "班级列表", str)
 
+    # 删除班级调用
+    def delete_class_by_name(self,name):
+        request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/delete"
+
+        params = {
+            "group_id": name  # 要删除用户组的id
+        }
+        access_token = self.access_token
+        request_url = request_url + "?access_token=" + access_token
+        headers = {'content-type': 'application/json'}
+        response = requests.post(request_url, data=params, headers=headers)
+        if response:
+            print(response.json())
+            message = response.json()
+            if message['error_code'] == 0:
+                QMessageBox.about(self, "班级删除结果", "班级删除成功")
+            else:
+                QMessageBox.about(self, "班级删除结果", "班级删除失败")
+
     # 班级删除
     def delete_calss(self):
         # 打开输入框，进行输入用户组
@@ -233,24 +261,8 @@ class function_window(Ui_MainWindow, QMainWindow):
         if group == "":
             print("取消删除班级")
         else:
-            request_url = "https://aip.baidubce.com/rest/2.0/face/v3/faceset/group/delete"
+            self.delete_class_by_name(group)
 
-            params = {
-                "group_id": group  # 要删除用户组的id
-            }
-            access_token = self.access_token
-            request_url = request_url + "?access_token=" + access_token
-            headers = {'content-type': 'application/json'}
-            response = requests.post(request_url, data=params, headers=headers)
-            if response:
-                print(response.json())
-                message = response.json()
-                if message['error_code'] == 0:
-                    QMessageBox.about(self, "班级删除结果", "班级删除成功")
-                else:
-                    QMessageBox.about(self, "班级删除结果", "班级删除失败")
-
-                    
         self.fresh_window()
 
     # 增加学生信息
