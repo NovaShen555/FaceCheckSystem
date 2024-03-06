@@ -33,11 +33,11 @@ class searchData_window(Ui_MainWindow,QMainWindow):
         # 设置表格为指定长度
         self.tableWidget.setColumnWidth(0, 130)
         self.tableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tableWidget.setColumnWidth(1, 85)
+        self.tableWidget.setColumnWidth(1, 105)
         self.tableWidget.horizontalHeader().setSectionResizeMode(1, QHeaderView.Fixed)
-        self.tableWidget.setColumnWidth(2, 85)
+        self.tableWidget.setColumnWidth(2, 135)
         self.tableWidget.horizontalHeader().setSectionResizeMode(2, QHeaderView.Fixed)
-        self.tableWidget.setColumnWidth(3, 280)
+        self.tableWidget.setColumnWidth(3, 380)
 
         # 读取持久化的数据
         f = open("pickle.pickle", 'rb')
