@@ -1,4 +1,5 @@
 import base64
+import os
 import pickle
 import time
 
@@ -13,6 +14,7 @@ from main import Ui_MainWindow
 from detect import detect_thread
 from add_student_window import add_student_window
 from del_student_window import del_student_window
+from punchData import punchData
 
 
 class function_window(Ui_MainWindow, QMainWindow):
@@ -118,14 +120,19 @@ class function_window(Ui_MainWindow, QMainWindow):
                 QMessageBox.about(self, "警告", "关闭失败，存在部分没有关闭成功！")
 
             # 将数据持久化
-            f = open("pickle.pickle", 'rb')
-            objFromPickle = pickle.load(f)
-            f.close()
-            f = open("pickle.pickle", 'wb')
-            for i in self.detect.store_data:
-                objFromPickle.append(i)
-            print(objFromPickle)
-            f.close()
+            objFromPickle:list[punchData] = []
+            try:
+                if os.path.getsize("pickle.pickle") > 0:
+                    with open("pickle.pickle", "rb") as f:
+                        unpickler = pickle.Unpickler(f)
+                        objFromPickle = unpickler.load()
+            finally:
+                f = open("pickle.pickle", 'wb')
+                for i in self.detect.store_data:
+                    objFromPickle.append(i)
+                print(objFromPickle)
+                pickle.dump(objFromPickle, f)
+                f.close()
 
         else:
             QMessageBox.about(self, "提示", "请先开始检测！")
